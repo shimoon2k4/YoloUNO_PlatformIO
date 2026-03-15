@@ -1,6 +1,19 @@
 #include "global.h"
-float glob_temperature = 0;
-float glob_humidity = 0;
+// float glob_temperature = 0;
+// float glob_humidity = 0;
+struct SystemData {
+    float temperature;
+    float humidity;
+
+    // Semaphores để đồng bộ hóa 
+    SemaphoreHandle_t xMutex;         // Bảo vệ dữ liệu temp/humi
+    SemaphoreHandle_t xLedSemaphore;  // Tín hiệu cho Task 1
+    SemaphoreHandle_t xNeoSemaphore;  // Tín hiệu cho Task 2
+
+    // Con trỏ thiết bị
+    DHT20 *dht20;
+    Adafruit_NeoPixel *pixel;
+};
 
 String WIFI_SSID;
 String WIFI_PASS;
