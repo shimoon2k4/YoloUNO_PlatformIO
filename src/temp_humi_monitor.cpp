@@ -1,9 +1,7 @@
 #include "temp_humi_monitor.h"
-DHT20 dht20;
-LiquidCrystal_I2C lcd(33,16,2);
+#include "task_webserver.h"
 
 
-// void temp_humi_monitor(void *pvParameters){
 
 //     Wire.begin(11, 12);
 //     Serial.begin(115200);
@@ -44,51 +42,67 @@ LiquidCrystal_I2C lcd(33,16,2);
     
 // }
 void temp_humi_monitor(void *pvParameters) {
-    // 1. Ép kiểu tham số (pvParameters) về struct SystemData
+    // 1. Cast parameters to SystemData struct
     SystemData *data = (SystemData *)pvParameters;
 
-    // Khởi tạo cảm biến (Sử dụng con trỏ từ struct)
+    // Initialize I2C and Sensor
+    Wire.begin(11, 12); // Configure SDA = 11, SCL = 12
     data->dht20->begin();
+    
+    // Initialize LCD
+    data->lcd->begin();
+    data->lcd->backlight();
 
     while (1) {
-        // Đọc dữ liệu từ DHT20
+        // Read data from DHT20
         data->dht20->read();
         float temp = data->dht20->getTemperature();
         float humi = data->dht20->getHumidity();
 
         if (isnan(temp) || isnan(humi)) {
-            Serial.println("Lỗi: Không đọc được dữ liệu từ DHT20!");
+            Serial.println("Error: Failed to read data from DHT20!");
         } else {
-            // 2. Sử dụng Mutex để cập nhật dữ liệu an toàn (Tránh xung đột tài nguyên)
+            // 2. Use Mutex to safely update data (Prevent resource synchronization issues)
             if (xSemaphoreTake(data->xMutex, portMAX_DELAY)) {
                 data->temperature = temp;
                 data->humidity = humi;
                 xSemaphoreGive(data->xMutex);
             }
 
-            // 3. Logic hiển thị LCD (Yêu cầu Task 3: ít nhất 3 trạng thái) 
+            // 3. LCD display logic (Task 3 requirement: at least 3 states)
             data->lcd->clear();
             data->lcd->setCursor(0, 0);
             if (temp < 30) {
-                data->lcd->print("State: Normal"); // Trạng thái bình thường
+                data->lcd->print("State: Normal"); // Output normal mode
             } else if (temp < 35) {
-                data->lcd->print("State: Warning"); // Trạng thái cảnh báo
+                data->lcd->print("State: Warning"); // Output warning mode
             } else {
-                data->lcd->print("State: Critical"); // Trạng thái nguy cấp
+                data->lcd->print("State: Critical"); // Output critical mode
             }
 
             data->lcd->setCursor(0, 1);
             data->lcd->printf("T:%.1fC H:%.1f%%", temp, humi);
 
-            // 4. Giải phóng Semaphore để "đánh thức" các Task khác 
+            // 4. Release Semaphore to "wake up" other Tasks
             xSemaphoreGive(data->xLedSemaphore);
             xSemaphoreGive(data->xNeoSemaphore);
 
-            // Log để kiểm tra
-            Serial.printf("Nhiet do: %.2f, Do am: %.2f\n", temp, humi);
+            // Print log for verification and send data, all protected by mutex
+            if (xSemaphoreTake(xSerialMutex, portMAX_DELAY)) {
+                Serial.printf("Temp: %.2fC, Humi: %.2f%%\r\n", temp, humi);
+                
+                // Send updated data to Web Component via WebSocket
+                String sensorJSON = "{\"page\":\"dashboard\",\"temp\":" + String(temp, 1) + ",\"humi\":" + String(humi, 1) + "}";
+                if (Webserver_senddata(sensorJSON) == 0) {
+                    Serial.println("No WebSocket clients connected!");
+                } else {
+                    Serial.println("Sent data to WebSocket clients.");
+                }
+                xSemaphoreGive(xSerialMutex);
+            }
         }
 
-        // Delay task 5 giây mỗi lần đọc
+        // Delay task 5 seconds per read
         vTaskDelay(pdMS_TO_TICKS(5000));
     }
 }

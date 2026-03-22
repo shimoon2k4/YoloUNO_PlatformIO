@@ -28,26 +28,32 @@ function initWebSocket() {
 function Send_Data(data) {
     if (websocket && websocket.readyState === WebSocket.OPEN) {
         websocket.send(data);
-        console.log("📤 Gửi:", data);
+        console.log("Send:", data);
     } else {
-        console.warn("⚠️ WebSocket chưa sẵn sàng!");
-        alert("⚠️ WebSocket chưa kết nối!");
+        console.warn("WebSocket is not ready!");
+        alert("WebSocket is not connected!");
     }
 }
 
 function onMessage(event) {
-    console.log("📩 Nhận:", event.data);
+    console.log("Receive:", event.data);
     try {
         var data = JSON.parse(event.data);
-        // Có thể thêm xử lý riêng nếu cần (ví dụ cập nhật trạng thái)
+        if (data.page === "dashboard") {
+            document.getElementById("gauge_temp").innerHTML = data.temp + " &deg;C";
+            document.getElementById("gauge_humi").innerHTML = data.humi + " %";
+        }
     } catch (e) {
-        console.warn("Không phải JSON hợp lệ:", event.data);
+        console.warn("Invalid JSON:", event.data);
     }
 }
 
 
 // ==================== UI NAVIGATION ====================
-let relayList = [];
+let relayList = [
+    { id: 1, name: "LED 1 (Living Room)", gpio: 4, state: false },
+    { id: 2, name: "LED 2 (Bedroom)", gpio: 5, state: false }
+];
 let deleteTarget = null;
 
 function showSection(id, event) {
@@ -60,36 +66,7 @@ function showSection(id, event) {
 
 // ==================== HOME GAUGES ====================
 window.onload = function () {
-    const gaugeTemp = new JustGage({
-        id: "gauge_temp",
-        value: 26,
-        min: -10,
-        max: 50,
-        donut: true,
-        pointer: false,
-        gaugeWidthScale: 0.25,
-        gaugeColor: "transparent",
-        levelColorsGradient: true,
-        levelColors: ["#00BCD4", "#4CAF50", "#FFC107", "#F44336"]
-    });
-
-    const gaugeHumi = new JustGage({
-        id: "gauge_humi",
-        value: 60,
-        min: 0,
-        max: 100,
-        donut: true,
-        pointer: false,
-        gaugeWidthScale: 0.25,
-        gaugeColor: "transparent",
-        levelColorsGradient: true,
-        levelColors: ["#42A5F5", "#00BCD4", "#0288D1"]
-    });
-
-    setInterval(() => {
-        gaugeTemp.refresh(Math.floor(Math.random() * 15) + 20);
-        gaugeHumi.refresh(Math.floor(Math.random() * 40) + 40);
-    }, 3000);
+    renderRelays(); // Render default relay buttons
 };
 
 
@@ -156,7 +133,7 @@ function confirmDelete() {
 }
 
 
-// ==================== SETTINGS FORM (BỔ SUNG) ====================
+// ==================== SETTINGS FORM ====================
 document.getElementById("settingsForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
@@ -178,5 +155,5 @@ document.getElementById("settingsForm").addEventListener("submit", function (e) 
     });
 
     Send_Data(settingsJSON);
-    alert("✅ Cấu hình đã được gửi đến thiết bị!");
+    alert("Configuration sent to device successfully!");
 });

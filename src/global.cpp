@@ -1,19 +1,12 @@
 #include "global.h"
+
 // float glob_temperature = 0;
 // float glob_humidity = 0;
-struct SystemData {
-    float temperature;
-    float humidity;
 
-    // Semaphores để đồng bộ hóa 
-    SemaphoreHandle_t xMutex;         // Bảo vệ dữ liệu temp/humi
-    SemaphoreHandle_t xLedSemaphore;  // Tín hiệu cho Task 1
-    SemaphoreHandle_t xNeoSemaphore;  // Tín hiệu cho Task 2
-
-    // Con trỏ thiết bị
-    DHT20 *dht20;
-    Adafruit_NeoPixel *pixel;
-};
+SystemData systemData;
+DHT20 dht20_inst;
+LiquidCrystal_I2C lcd_inst(33, 16, 2);
+Adafruit_NeoPixel pixel_inst(1, 45, NEO_GRB + NEO_KHZ800);
 
 String WIFI_SSID;
 String WIFI_PASS;
@@ -27,3 +20,4 @@ String wifi_ssid = "abcde";
 String wifi_password = "123456789";
 boolean isWifiConnected = false;
 SemaphoreHandle_t xBinarySemaphoreInternet = xSemaphoreCreateBinary();
+SemaphoreHandle_t xSerialMutex;

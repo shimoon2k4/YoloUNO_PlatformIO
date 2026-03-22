@@ -26,6 +26,11 @@ struct SystemData {
     LiquidCrystal_I2C *lcd;
 };
 
+extern SystemData systemData;
+extern DHT20 dht20_inst;
+extern LiquidCrystal_I2C lcd_inst;
+extern Adafruit_NeoPixel pixel_inst;
+
 extern String WIFI_SSID;
 extern String WIFI_PASS;
 extern String CORE_IOT_TOKEN;
@@ -34,4 +39,5 @@ extern String CORE_IOT_PORT;
 
 extern boolean isWifiConnected;
 extern SemaphoreHandle_t xBinarySemaphoreInternet;
+extern SemaphoreHandle_t xSerialMutex;
 #endif

@@ -5,28 +5,31 @@ AsyncWebSocket ws("/ws");
 
 bool webserver_isrunning = false;
 
-void Webserver_sendata(String data)
+int Webserver_senddata(String data)
 {
-    if (ws.count() > 0)
+    int clients = ws.count();
+    if (clients > 0)
     {
-        ws.textAll(data); // Gửi đến tất cả client đang kết nối
-        Serial.println("📤 Đã gửi dữ liệu qua WebSocket: " + data);
+        ws.textAll(data); // Send to all connected clients
     }
-    else
-    {
-        Serial.println("⚠️ Không có client WebSocket nào đang kết nối!");
-    }
+    return clients;
 }
 
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
 {
     if (type == WS_EVT_CONNECT)
     {
-        Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+        if (xSemaphoreTake(xSerialMutex, portMAX_DELAY)) {
+            Serial.printf("WebSocket client #%u connected from %s\r\n", client->id(), client->remoteIP().toString().c_str());
+            xSemaphoreGive(xSerialMutex);
+        }
     }
     else if (type == WS_EVT_DISCONNECT)
     {
-        Serial.printf("WebSocket client #%u disconnected\n", client->id());
+        if (xSemaphoreTake(xSerialMutex, portMAX_DELAY)) {
+            Serial.printf("WebSocket client #%u disconnected\r\n", client->id());
+            xSemaphoreGive(xSerialMutex);
+        }
     }
     else if (type == WS_EVT_DATA)
     {

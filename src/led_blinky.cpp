@@ -3,18 +3,18 @@ void led_blinky(void *pvParameters) {
     SystemData *data = (SystemData *)pvParameters;
     
     pinMode(LED_GPIO, OUTPUT);
-    uint32_t blink_delay = 1000; // Giá trị mặc định
+    uint32_t blink_delay = 1000; // Default value
 
     while (1) {
-        // Đợi tín hiệu đồng bộ từ Task cảm biến (Task 1) 
+        // Wait for synchronization signal from Sensor Task (Task 1)
         if (xSemaphoreTake(data->xLedSemaphore, portMAX_DELAY) == pdTRUE) {
             
-            // Truy cập dữ liệu nhiệt độ an toàn bằng Mutex 
+            // Safely access temperature data using Mutex
             if (xSemaphoreTake(data->xMutex, portMAX_DELAY) == pdTRUE) {
                 float current_temp = data->temperature;
                 xSemaphoreGive(data->xMutex);
 
-                // Task 1: Định nghĩa 3 hành vi chớp tắt theo nhiệt độ 
+                // Task 1: Define 3 blinking behaviors based on temperature
                 if (current_temp < 30.0) {
                     blink_delay = 2000; 
                 } 
@@ -27,7 +27,7 @@ void led_blinky(void *pvParameters) {
             }
         }
 
-        // Thực hiện hành vi chớp tắt
+        // Execute blinking behavior
         digitalWrite(LED_GPIO, HIGH);
         vTaskDelay(pdMS_TO_TICKS(blink_delay));
         digitalWrite(LED_GPIO, LOW);

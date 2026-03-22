@@ -3,46 +3,46 @@
 
 
 void neo_blinky(void *pvParameters) {
-    // Ép kiểu tham số để truy cập tài nguyên hệ thống  
+    // Cast parameter to access system resources
     SystemData *data = (SystemData *)pvParameters;
 
-    // Khởi tạo NeoPixel thông qua con trỏ trong struct
+    // Output NeoPixel via struct pointer
     data->pixel->begin();
-    data->pixel->setBrightness(50); // Đặt độ sáng vừa phải
+    data->pixel->setBrightness(50); // Set moderate brightness
     data->pixel->clear();
     data->pixel->show();
 
     while (1) {
-        // Task 2: Sử dụng Semaphore để đồng bộ hóa việc cập nhật màu sắc 
+        // Task 2: Use Semaphore to synchronize color updates
         if (xSemaphoreTake(data->xNeoSemaphore, portMAX_DELAY) == pdTRUE) {
             
             float current_humi = 0;
 
-            // Truy cập dữ liệu độ ẩm an toàn bằng Mutex 
+            // Safely access humidity data using Mutex
             if (xSemaphoreTake(data->xMutex, portMAX_DELAY) == pdTRUE) {
                 current_humi = data->humidity;
                 xSemaphoreGive(data->xMutex);
             }
 
-            // Task 2: Định nghĩa ít nhất 3 mức độ ẩm/màu sắc 
+            // Task 2: Define at least 3 humidity levels/colors
             if (current_humi < 40.0) {
-                // Mức 1: Khô (Dry) -> Màu Đỏ 
+                // Level 1: Dry -> Red
                 data->pixel->setPixelColor(0, data->pixel->Color(255, 0, 0));
             } 
             else if (current_humi >= 40.0 && current_humi <= 70.0) {
-                // Mức 2: Lý tưởng (Comfort) -> Màu Xanh lá 
+                // Level 2: Comfort -> Green
                 data->pixel->setPixelColor(0, data->pixel->Color(0, 255, 0));
             } 
             else {
-                // Mức 3: Ẩm (Humid) -> Màu Xanh dương 
+                // Level 3: Humid -> Blue
                 data->pixel->setPixelColor(0, data->pixel->Color(0, 0, 255));
             }
 
-            // Cập nhật hiển thị lên đèn
+            // Update display on LED
             data->pixel->show();
         }
         vTaskDelay(500);
         
-        // Task này không cần vTaskDelay cố định vì nó "ngủ" đợi Semaphore 
+        // This task does not need a fixed vTaskDelay as it "sleeps" waiting for Semaphore
     }
 }
