@@ -1,5 +1,13 @@
 #include "task_check_info.h"
 
+#include "task_check_info.h"
+
+String g_WIFI_SSID;
+String g_WIFI_PASS;
+String g_CORE_IOT_TOKEN;
+String g_CORE_IOT_SERVER;
+String g_CORE_IOT_PORT;
+
 void Load_info_File()
 {
   File file = LittleFS.open("/info.dat", "r");
@@ -15,11 +23,11 @@ void Load_info_File()
   }
   else
   {
-    WIFI_SSID = strdup(doc["WIFI_SSID"]);
-    WIFI_PASS = strdup(doc["WIFI_PASS"]);
-    CORE_IOT_TOKEN = strdup(doc["CORE_IOT_TOKEN"]);
-    CORE_IOT_SERVER = strdup(doc["CORE_IOT_SERVER"]);
-    CORE_IOT_PORT = strdup(doc["CORE_IOT_PORT"]);
+    g_WIFI_SSID = doc["WIFI_SSID"].as<String>();
+    g_WIFI_PASS = doc["WIFI_PASS"].as<String>();
+    g_CORE_IOT_TOKEN = doc["CORE_IOT_TOKEN"].as<String>();
+    g_CORE_IOT_SERVER = doc["CORE_IOT_SERVER"].as<String>();
+    g_CORE_IOT_PORT = doc["CORE_IOT_PORT"].as<String>();
   }
   file.close();
 }
@@ -33,17 +41,17 @@ void Delete_info_File()
   ESP.restart();
 }
 
-void Save_info_File(String wifi_ssid, String wifi_pass, String CORE_IOT_TOKEN, String CORE_IOT_SERVER, String CORE_IOT_PORT)
+void Save_info_File(String in_WIFI_SSID, String in_WIFI_PASS, String in_CORE_IOT_TOKEN, String in_CORE_IOT_SERVER, String in_CORE_IOT_PORT)
 {
-  Serial.println(wifi_ssid);
-  Serial.println(wifi_pass);
+  Serial.println(in_WIFI_SSID);
+  Serial.println(in_WIFI_PASS);
 
   DynamicJsonDocument doc(4096);
-  doc["WIFI_SSID"] = wifi_ssid;
-  doc["WIFI_PASS"] = wifi_pass;
-  doc["CORE_IOT_TOKEN"] = CORE_IOT_TOKEN;
-  doc["CORE_IOT_SERVER"] = CORE_IOT_SERVER;
-  doc["CORE_IOT_PORT"] = CORE_IOT_PORT;
+  doc["WIFI_SSID"] = in_WIFI_SSID;
+  doc["WIFI_PASS"] = in_WIFI_PASS;
+  doc["CORE_IOT_TOKEN"] = in_CORE_IOT_TOKEN;
+  doc["CORE_IOT_SERVER"] = in_CORE_IOT_SERVER;
+  doc["CORE_IOT_PORT"] = in_CORE_IOT_PORT;
 
   File configFile = LittleFS.open("/info.dat", "w");
   if (configFile)
@@ -70,7 +78,7 @@ bool check_info_File(bool check)
     Load_info_File();
   }
   
-  if (WIFI_SSID.isEmpty() && WIFI_PASS.isEmpty())
+  if (g_WIFI_SSID.isEmpty() && g_WIFI_PASS.isEmpty())
   {
     if (!check)
     {

@@ -1,5 +1,6 @@
 #include "temp_humi_monitor.h"
 #include "task_webserver.h"
+#include "task_core_iot.h"
 
 
 
@@ -90,6 +91,8 @@ void temp_humi_monitor(void *pvParameters) {
             // Print log for verification and send data, all protected by mutex
             if (xSemaphoreTake(xSerialMutex, portMAX_DELAY)) {
                 Serial.printf("Temp: %.2fC, Humi: %.2f%%\r\n", temp, humi);
+                CORE_IOT_sendata("telemetry", "temperature", String(temp, 1));
+                CORE_IOT_sendata("telemetry", "humidity", String(humi, 1));
                 
                 // Send updated data to Web Component via WebSocket
                 String sensorJSON = "{\"page\":\"dashboard\",\"temp\":" + String(temp, 1) + ",\"humi\":" + String(humi, 1) + "}";

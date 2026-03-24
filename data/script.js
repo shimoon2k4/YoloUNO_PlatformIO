@@ -133,6 +133,23 @@ function confirmDelete() {
 }
 
 
+// ==================== SETTINGS TABS ====================
+function switchTab(tabId, button) {
+    // Hide all tabs
+    document.querySelectorAll('.settings-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active from all buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab and mark button as active
+    document.getElementById(tabId).classList.add('active');
+    button.classList.add('active');
+}
+
 // ==================== SETTINGS FORM ====================
 document.getElementById("settingsForm").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -157,3 +174,48 @@ document.getElementById("settingsForm").addEventListener("submit", function (e) 
     Send_Data(settingsJSON);
     alert("Configuration sent to device successfully!");
 });
+
+// ==================== WIFI ONLY FORM ====================
+document.getElementById("wifiOnlyForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const ssid = document.getElementById("wifiSsid").value.trim();
+    const password = document.getElementById("wifiPassword").value.trim();
+
+    if (!ssid || !password) {
+        alert("⚠️ Please fill all WiFi fields!");
+        return;
+    }
+
+    const wifiJSON = JSON.stringify({
+        page: "wifi_change",
+        value: {
+            ssid: ssid,
+            password: password
+        }
+    });
+
+    Send_Data(wifiJSON);
+    alert("WiFi configuration sent to device! Device will reconnect shortly...");
+    
+    // Clear form
+    document.getElementById("wifiOnlyForm").reset();
+});
+
+// ==================== RESET CONFIGURATION ====================
+function showResetConfirm() {
+    document.getElementById('resetConfirmDialog').style.display = 'flex';
+}
+
+function closeResetConfirm() {
+    document.getElementById('resetConfirmDialog').style.display = 'none';
+}
+
+function confirmReset() {
+    const resetJSON = JSON.stringify({
+        page: "reset"
+    });
+    Send_Data(resetJSON);
+    closeResetConfirm();
+    alert("Device configuration is being reset. It will restart and enter AP mode shortly...");
+}

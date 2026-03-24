@@ -1,4 +1,5 @@
 #include "task_webserver.h"
+#include <ESPmDNS.h>
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -57,6 +58,15 @@ void connnectWSV()
               { request->send(LittleFS, "/styles.css", "text/css"); });
     server.begin();
     ElegantOTA.begin(&server);
+    
+    // Initialize mDNS for easy access
+    if (!MDNS.begin("yolound")) {
+        Serial.println("Error setting up mDNS responder!");
+    } else {
+        Serial.println("mDNS responder started! Access at: http://yolound.local");
+        MDNS.addService("http", "tcp", 80);
+    }
+    
     webserver_isrunning = true;
 }
 

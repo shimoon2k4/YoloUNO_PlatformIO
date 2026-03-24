@@ -80,36 +80,78 @@
         <h2><i class="fa-solid fa-gear"></i> Device Configuration</h2>
         <p>Enter your Wi-Fi and Core IoT connection information below.</p>
 
-        <form id="settingsForm">
-          <div class="input-group">
-            <i class="fa-solid fa-wifi"></i>
-            <input type="text" id="ssid" placeholder="Wi-Fi SSID" required>
-          </div>
-
-          <div class="input-group">
-            <i class="fa-solid fa-lock"></i>
-            <input type="password" id="password" placeholder="Wi-Fi Password" required>
-          </div>
-
-          <div class="input-group">
-            <i class="fa-solid fa-key"></i>
-            <input type="text" id="token" placeholder="Core IoT Token" required>
-          </div>
-
-          <div class="input-group">
-            <i class="fa-solid fa-server"></i>
-            <input type="text" id="server" placeholder="Core IoT Server" required>
-          </div>
-
-          <div class="input-group">
-            <i class="fa-solid fa-plug"></i>
-            <input type="number" id="port" placeholder="Core IoT Port" required>
-          </div>
-
-          <button type="submit" class="btn-save">
-            <i class="fa-solid fa-floppy-disk"></i> Save Configuration
+        <!-- TAB BUTTONS -->
+        <div class="settings-tabs">
+          <button class="tab-btn active" onclick="switchTab('full-config', this)">
+            <i class="fa-solid fa-sliders"></i> Full Configuration
           </button>
-        </form>
+          <button class="tab-btn" onclick="switchTab('wifi-only', this)">
+            <i class="fa-solid fa-wifi"></i> Change WiFi Only
+          </button>
+        </div>
+
+        <!-- TAB 1: FULL CONFIGURATION -->
+        <div id="full-config" class="settings-tab active">
+          <form id="settingsForm">
+            <div class="input-group">
+              <i class="fa-solid fa-wifi"></i>
+              <input type="text" id="ssid" placeholder="Wi-Fi SSID" required>
+            </div>
+
+            <div class="input-group">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="password" placeholder="Wi-Fi Password" required>
+            </div>
+
+            <div class="input-group">
+              <i class="fa-solid fa-key"></i>
+              <input type="text" id="token" placeholder="Core IoT Token" required>
+            </div>
+
+            <div class="input-group">
+              <i class="fa-solid fa-server"></i>
+              <input type="text" id="server" placeholder="Core IoT Server" required>
+            </div>
+
+            <div class="input-group">
+              <i class="fa-solid fa-plug"></i>
+              <input type="number" id="port" placeholder="Core IoT Port" required>
+            </div>
+
+            <button type="submit" class="btn-save">
+              <i class="fa-solid fa-floppy-disk"></i> Save Configuration
+            </button>
+          </form>
+        </div>
+
+        <!-- TAB 2: WIFI ONLY -->
+        <div id="wifi-only" class="settings-tab" style="display:none;">
+          <form id="wifiOnlyForm">
+            <div class="input-group">
+              <i class="fa-solid fa-wifi"></i>
+              <input type="text" id="wifiSsid" placeholder="Wi-Fi SSID" required>
+            </div>
+
+            <div class="input-group">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="wifiPassword" placeholder="Wi-Fi Password" required>
+            </div>
+
+            <p class="info-text">⚠️ Only WiFi settings will be changed. CoreIOT configuration will be preserved.</p>
+
+            <button type="submit" class="btn-save">
+              <i class="fa-solid fa-wifi"></i> Change WiFi Only
+            </button>
+          </form>
+        </div>
+
+        <div class="reset-section">
+          <h3><i class="fa-solid fa-exclamation-triangle"></i> Danger Zone</h3>
+          <p>Reset configuration to factory defaults. Device will restart in AP mode.</p>
+          <button type="button" class="btn-reset" onclick="showResetConfirm()">
+            <i class="fa-solid fa-rotate-right"></i> Reset Configuration
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -140,6 +182,18 @@
       <div class="dialog-buttons">
         <button class="danger" onclick="confirmDelete()">Delete</button>
         <button class="cancel" onclick="closeConfirmDelete()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESET CONFIGURATION DIALOG -->
+  <div id="resetConfirmDialog" class="dialog-overlay" style="display:none;">
+    <div class="dialog warning fade-in">
+      <h3><i class="fa-solid fa-exclamation-circle"></i> Reset Configuration?</h3>
+      <p>This will delete all saved WiFi and CoreIOT settings. Device will restart in AP mode.</p>
+      <div class="dialog-buttons">
+        <button class="danger" onclick="confirmReset()">Reset</button>
+        <button class="cancel" onclick="closeResetConfirm()">Cancel</button>
       </div>
     </div>
   </div>

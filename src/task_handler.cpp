@@ -38,24 +38,50 @@ void handleWebSocketMessage(String message)
     }
     else if (doc["page"] == "setting")
     {
-        String WIFI_SSID = doc["value"]["ssid"].as<String>();
-        String WIFI_PASS = doc["value"]["password"].as<String>();
-        String CORE_IOT_TOKEN = doc["value"]["token"].as<String>();
-        String CORE_IOT_SERVER = doc["value"]["server"].as<String>();
-        String CORE_IOT_PORT = doc["value"]["port"].as<String>();
+        String l_WIFI_SSID = doc["value"]["ssid"].as<String>();
+        String l_WIFI_PASS = doc["value"]["password"].as<String>();
+        String l_CORE_IOT_TOKEN = doc["value"]["token"].as<String>();
+        String l_CORE_IOT_SERVER = doc["value"]["server"].as<String>();
+        String l_CORE_IOT_PORT = doc["value"]["port"].as<String>();
 
         Serial.println("Received configuration from WebSocket:");
-        Serial.println("SSID: " + WIFI_SSID);
-        Serial.println("PASS: " + WIFI_PASS);
-        Serial.println("TOKEN: " + CORE_IOT_TOKEN);
-        Serial.println("SERVER: " + CORE_IOT_SERVER);
-        Serial.println("PORT: " + CORE_IOT_PORT);
+        Serial.println("SSID: " + l_WIFI_SSID);
+        Serial.println("PASS: " + l_WIFI_PASS);
+        Serial.println("TOKEN: " + l_CORE_IOT_TOKEN);
+        Serial.println("SERVER: " + l_CORE_IOT_SERVER);
+        Serial.println("PORT: " + l_CORE_IOT_PORT);
 
         // Call function to save configuration
-        Save_info_File(WIFI_SSID, WIFI_PASS, CORE_IOT_TOKEN, CORE_IOT_SERVER, CORE_IOT_PORT);
+        Save_info_File(l_WIFI_SSID, l_WIFI_PASS, l_CORE_IOT_TOKEN, l_CORE_IOT_SERVER, l_CORE_IOT_PORT);
 
         // Respond to client (optional)
         String msg = "{\"status\":\"ok\",\"page\":\"setting_saved\"}";
         ws.textAll(msg);
+    }
+    else if (doc["page"] == "wifi_change")
+    {
+        String l_WIFI_SSID = doc["value"]["ssid"].as<String>();
+        String l_WIFI_PASS = doc["value"]["password"].as<String>();
+
+        Serial.println("=== WIFI CHANGE REQUESTED ===");
+        Serial.println("New SSID: " + l_WIFI_SSID);
+        Serial.println("New Password: " + l_WIFI_PASS);
+
+        // Update only WiFi, keep CoreIOT settings
+        g_WIFI_SSID = l_WIFI_SSID;
+        g_WIFI_PASS = l_WIFI_PASS;
+        // Keep existing CoreIOT settings
+        // g_CORE_IOT_TOKEN, g_CORE_IOT_SERVER, g_CORE_IOT_PORT unchanged
+
+        // Save to file (preserves CoreIOT settings)
+        Save_info_File(g_WIFI_SSID, g_WIFI_PASS, g_CORE_IOT_TOKEN, g_CORE_IOT_SERVER, g_CORE_IOT_PORT);
+
+        Serial.println("WiFi configuration updated! Device will reconnect...");
+    }
+    else if (doc["page"] == "reset")
+    {
+        Serial.println("=== RESET CONFIGURATION REQUESTED ===");
+        Serial.println("Deleting configuration file...");
+        Delete_info_File();
     }
 }
